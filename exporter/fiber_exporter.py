@@ -393,6 +393,47 @@ class FiberCollector:
         yield ch_peer_online
         yield ch_last_seen
 
+        # ---- fiber_channel_info (info-style metric for Grafana table) ----
+        info_labels = [
+            "node_name", "channel_id", "peer_id",
+            "local_balance", "remote_balance",
+            "enabled", "peer_online", "last_seen", "stale_seconds",
+        ]
+        ch_info = GaugeMetricFamily(
+            "fiber_channel_info",
+            "Channel information for table display (value is always 1)",
+            labels=info_labels,
+        )
+        for ch in channels:
+            channel_id = ch.get("channel_id", "")
+            peer_id = ch.get("peer_id", "")
+            state = ch.get("state", {})
+            state_name = state.get("state_name", "")
+            if state_name != "CHANNEL_READY":
+                continue
+            lb = _hex_to_ckb(ch.get("local_balance", "0x0"))
+            rb = _hex_to_ckb(ch.get("remote_balance", "0x0"))
+            enabled = "1" if ch.get("enabled", False) else "0"
+            peer_online = "1" if peer_id in online_peers else "0"
+            state_entry = self._channel_state.get(channel_id)
+            last_seen_ts = state_entry["last_seen"] if state_entry else now
+            stale_secs = now - last_seen_ts
+            ch_info.add_metric(
+                [
+                    node_name,
+                    channel_id,
+                    peer_id,
+                    f"{lb:.2f}",
+                    f"{rb:.2f}",
+                    enabled,
+                    peer_online,
+                    str(int(last_seen_ts)),
+                    str(int(stale_secs)),
+                ],
+                1,
+            )
+        yield ch_info
+
         # ---- aggregated ----
         local_total = GaugeMetricFamily(
             "fiber_channels_local_balance_total_ckb",

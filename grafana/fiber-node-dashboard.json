@@ -765,38 +765,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Last Seen"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "dateTimeAsLocal"
-              },
-              {
-                "id": "custom.width",
-                "value": 180
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Stale Duration"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "s"
-              },
-              {
-                "id": "custom.width",
-                "value": 150
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "Enabled"
             },
             "properties": [
@@ -830,7 +798,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 110
               },
               {
                 "id": "mappings",
@@ -857,12 +825,8 @@
             },
             "properties": [
               {
-                "id": "decimals",
-                "value": 2
-              },
-              {
                 "id": "custom.width",
-                "value": 150
+                "value": 160
               }
             ]
           },
@@ -873,12 +837,32 @@
             },
             "properties": [
               {
-                "id": "decimals",
-                "value": 2
-              },
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last Seen"
+            },
+            "properties": [
               {
                 "id": "custom.width",
-                "value": 160
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Stale Duration (s)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
               }
             ]
           },
@@ -924,7 +908,12 @@
           "show": false
         },
         "showHeader": true,
-        "sortBy": []
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Stale Duration (s)"
+          }
+        ]
       },
       "targets": [
         {
@@ -932,96 +921,36 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "fiber_channel_local_balance_ckb{network=~\"$network\", node_name=~\"$node\"}",
+          "expr": "fiber_channel_info{network=~\"$network\", node_name=~\"$node\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "fiber_channel_remote_balance_ckb{network=~\"$network\", node_name=~\"$node\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "fiber_channel_enabled{network=~\"$network\", node_name=~\"$node\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "fiber_channel_peer_online{network=~\"$network\", node_name=~\"$node\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "D"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "time() - fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "F"
         }
       ],
       "title": "Channel Details",
       "transformations": [
         {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "pattern": "^(channel_id|peer_id|node_name|Value .*)$"
-            }
-          }
-        },
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
           "id": "organize",
           "options": {
-            "excludeByName": {},
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "Value": true,
+              "network": true
+            },
             "renameByName": {
               "node_name": "Node",
               "channel_id": "Channel ID",
               "peer_id": "Peer ID",
-              "Value #A": "Local Balance (CKB)",
-              "Value #B": "Remote Balance (CKB)",
-              "Value #C": "Enabled",
-              "Value #D": "Peer Online",
-              "Value #E": "Last Seen",
-              "Value #F": "Stale Duration"
+              "local_balance": "Local Balance (CKB)",
+              "remote_balance": "Remote Balance (CKB)",
+              "enabled": "Enabled",
+              "peer_online": "Peer Online",
+              "last_seen": "Last Seen",
+              "stale_seconds": "Stale Duration (s)"
             },
             "indexByName": {
               "Node": 0,
@@ -1032,7 +961,7 @@
               "Enabled": 5,
               "Peer Online": 6,
               "Last Seen": 7,
-              "Stale Duration": 8
+              "Stale Duration (s)": 8
             }
           }
         }
