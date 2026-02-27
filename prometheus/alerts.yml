@@ -1,0 +1,56 @@
+groups:
+  - name: fiber_node_alerts
+    rules:
+      - alert: FiberNodeDown
+        expr: fiber_node_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Fiber node {{ $labels.node_name }} is unreachable"
+          description: "Fiber node {{ $labels.node_name }} ({{ $labels.network }}) RPC has been unreachable for more than 2 minutes."
+
+      - alert: FiberWalletBalanceLow
+        expr: fiber_wallet_ckb_balance < 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CKB wallet balance low on {{ $labels.node_name }}"
+          description: "Wallet balance on {{ $labels.node_name }} ({{ $labels.network }}) is below 100 CKB. Current: {{ $value }} CKB."
+
+      - alert: FiberNoPeers
+        expr: fiber_node_peers_count == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No peers on {{ $labels.node_name }}"
+          description: "{{ $labels.node_name }} ({{ $labels.network }}) has 0 peers for over 5 minutes."
+
+      - alert: FiberChannelStale
+        expr: (time() - fiber_channel_last_seen_timestamp) > 86400
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Stale channel on {{ $labels.node_name }}"
+          description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) has had no activity for over 24 hours."
+
+      - alert: FiberChannelPeerOffline
+        expr: fiber_channel_peer_online == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Channel peer offline on {{ $labels.node_name }}"
+          description: "Peer {{ $labels.peer_id }} of channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) has been disconnected for over 15 minutes."
+
+      - alert: FiberChannelDisabled
+        expr: fiber_channel_enabled == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Channel disabled on {{ $labels.node_name }}"
+          description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) is disabled."
