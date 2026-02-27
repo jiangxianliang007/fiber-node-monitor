@@ -125,13 +125,20 @@ def decode_ckb_address(address):
             "args": "0x" + args_bytes.hex(),
         }
 
-    # Full format (bech32m): 0x00, 0x02, 0x04
-    if fmt in _FORMAT_TYPE_HASH_TYPES and spec == "bech32m":
-        if len(payload) < 33:
+    # Full format (bech32m): 0x00 only
+    if fmt == 0x00 and spec == "bech32m":
+        if len(payload) < 34:
             raise ValueError("Payload too short for full format address")
-        code_hash_bytes = bytes(payload[1:33])
-        args_bytes = bytes(payload[33:])
-        hash_type = _FORMAT_TYPE_HASH_TYPES[fmt]
+        ptr = 1
+        code_hash_bytes = bytes(payload[ptr:ptr + 32])
+        ptr += 32
+        hash_type_byte = payload[ptr]
+        ptr += 1
+        args_bytes = bytes(payload[ptr:])
+        _hash_type_map = {0x00: "data", 0x01: "type", 0x02: "data1"}
+        if hash_type_byte not in _hash_type_map:
+            raise ValueError(f"Unknown hash_type byte 0x{hash_type_byte:02x} in full format address")
+        hash_type = _hash_type_map[hash_type_byte]
         return {
             "code_hash": "0x" + code_hash_bytes.hex(),
             "hash_type": hash_type,
