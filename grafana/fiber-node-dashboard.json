@@ -1005,13 +1005,27 @@
           }
         },
         {
-          "id": "merge",
-          "options": {}
+          "id": "joinByField",
+          "options": {
+            "byField": "channel_id",
+            "mode": "outer"
+          }
         },
         {
           "id": "organize",
           "options": {
-            "excludeByName": {},
+            "excludeByName": {
+              "node_name 1": true,
+              "node_name 2": true,
+              "node_name 3": true,
+              "node_name 4": true,
+              "node_name 5": true,
+              "peer_id 1": true,
+              "peer_id 2": true,
+              "peer_id 3": true,
+              "peer_id 4": true,
+              "peer_id 5": true
+            },
             "renameByName": {
               "node_name": "Node",
               "channel_id": "Channel ID",
@@ -1024,15 +1038,15 @@
               "Value #F": "Stale Duration"
             },
             "indexByName": {
-              "Node": 0,
-              "Channel ID": 1,
-              "Peer ID": 2,
-              "Local Balance (CKB)": 3,
-              "Remote Balance (CKB)": 4,
-              "Enabled": 5,
-              "Peer Online": 6,
-              "Last Seen": 7,
-              "Stale Duration": 8
+              "node_name": 0,
+              "channel_id": 1,
+              "peer_id": 2,
+              "Value #A": 3,
+              "Value #B": 4,
+              "Value #C": 5,
+              "Value #D": 6,
+              "Value #E": 7,
+              "Value #F": 8
             }
           }
         }
