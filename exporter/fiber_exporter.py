@@ -461,7 +461,7 @@ def main():
     fiber_rpc_url = os.environ.get("FIBER_RPC_URL", "http://127.0.0.1:8227")
     ckb_rpc_url = os.environ.get("CKB_RPC_URL", "https://mainnet.ckbapp.dev")
     ckb_address = os.environ.get("CKB_ADDRESS", "")
-    exporter_port = int(os.environ.get("EXPORTER_PORT", "8200"))
+    exporter_port = int(os.environ.get("EXPORTER_PORT", "8222"))
     node_name = os.environ.get("NODE_NAME", "fiber-node-01")
     graph_scrape_interval = int(os.environ.get("GRAPH_SCRAPE_INTERVAL", "300"))
     state_file = os.environ.get("STATE_FILE", "state.json")

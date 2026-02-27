@@ -20,11 +20,11 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
                         │  scrape_configs:                     │
                         │   - job: fiber-mainnet               │
                         │     labels: {network: mainnet}       │◄──┐
-                        │     targets: [node1:8200, node2:8200]│   │
+                        │     targets: [node1:8222, node2:8222]│   │
                         │                                      │   │ scrape
                         │   - job: fiber-testnet               │   │ /metrics
                         │     labels: {network: testnet}       │   │
-                        │     targets: [node3:8200]            │   │
+                        │     targets: [node3:8222]            │   │
                         └──────────────┬──────────────────────┘   │
                                        │                           │
                                PromQL  │                 ┌─────────┴────────┐
@@ -32,7 +32,7 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
                         ┌──────────────────────┐         │  (per node)      │
                         │   Grafana Dashboard  │         │                  │
                         │                      │         │ fiber_exporter.py│
-                        │  Variables:          │         │  :8200/metrics   │
+                        │  Variables:          │         │  :8222/metrics   │
                         │   $datasource        │         └────────┬─────────┘
                         │   $network           │                  │ JSON-RPC
                         │   $node              │         ┌────────▼─────────┐
@@ -78,7 +78,7 @@ export $(cat ../.env | xargs)
 python fiber_exporter.py
 ```
 
-Metrics are available at `http://localhost:8200/metrics`.
+Metrics are available at `http://localhost:8222/metrics`.
 
 ### 5. Run with Docker
 
@@ -86,7 +86,7 @@ Metrics are available at `http://localhost:8200/metrics`.
 docker build -t fiber-exporter ./exporter
 docker run -d \
   --env-file .env \
-  -p 8200:8200 \
+  -p 8222:8222 \
   --name fiber-exporter \
   fiber-exporter
 ```
@@ -101,8 +101,8 @@ Run one exporter instance per Fiber node. Use different ports and `NODE_NAME` va
 ```
 FIBER_RPC_URL=http://127.0.0.1:8227
 CKB_RPC_URL=https://mainnet.ckbapp.dev
-CKB_ADDRESS=ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdjsydf39sklhfvtfnk57vvd7d2vn4kxwqpr3prn
-EXPORTER_PORT=8200
+CKB_ADDRESS=ckb1qz<your-mainnet-ckb-address>
+EXPORTER_PORT=8222
 NODE_NAME=fiber-mainnet-01
 GRAPH_SCRAPE_INTERVAL=300
 STATE_FILE=/var/lib/fiber/mainnet-01-state.json
@@ -113,7 +113,7 @@ STATE_FILE=/var/lib/fiber/mainnet-01-state.json
 FIBER_RPC_URL=http://127.0.0.1:8228
 CKB_RPC_URL=https://testnet.ckbapp.dev
 CKB_ADDRESS=ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xws...
-EXPORTER_PORT=8201
+EXPORTER_PORT=8223
 NODE_NAME=fiber-testnet-01
 GRAPH_SCRAPE_INTERVAL=300
 STATE_FILE=/var/lib/fiber/testnet-01-state.json
@@ -128,13 +128,13 @@ services:
     image: fiber-exporter
     env_file: /etc/fiber/mainnet-01.env
     ports:
-      - "8200:8200"
+      - "8222:8222"
 
   fiber-exporter-testnet-01:
     image: fiber-exporter
     env_file: /etc/fiber/testnet-01.env
     ports:
-      - "8201:8201"
+      - "8223:8223"
 ```
 
 ### Prometheus `scrape_configs`
@@ -146,15 +146,15 @@ scrape_configs:
   - job_name: fiber-mainnet
     static_configs:
       - targets:
-          - "node1.example.com:8200"
-          - "node2.example.com:8200"
+          - "node1.example.com:8222"
+          - "node2.example.com:8222"
         labels:
           network: mainnet
 
   - job_name: fiber-testnet
     static_configs:
       - targets:
-          - "testnet-node1.example.com:8201"
+          - "testnet-node1.example.com:8223"
         labels:
           network: testnet
 
@@ -187,7 +187,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `FIBER_RPC_URL` | `http://127.0.0.1:8227` | Fiber node JSON-RPC endpoint |
 | `CKB_RPC_URL` | `https://mainnet.ckbapp.dev` | CKB RPC / Indexer endpoint |
 | `CKB_ADDRESS` | *(required)* | CKB wallet address to monitor |
-| `EXPORTER_PORT` | `8200` | HTTP port for `/metrics` |
+| `EXPORTER_PORT` | `8222` | HTTP port for `/metrics` |
 | `NODE_NAME` | `fiber-node-01` | Node identifier, added as `node_name` label |
 | `GRAPH_SCRAPE_INTERVAL` | `300` | Seconds between network graph refreshes |
 | `STATE_FILE` | `state.json` | Path to persist channel `last_seen` state |
@@ -262,12 +262,12 @@ For development and debugging:
 
 ```bash
 # Test Fiber RPC
-curl -X POST http://8.162.235.225:8227 \
+curl -X POST http://127.0.0.1:8227 \
   -H 'Content-Type: application/json' \
   -d '{"id":1,"jsonrpc":"2.0","method":"node_info","params":[]}'
 
-# Test CKB Indexer balance query
-curl -X POST https://mainnet.ckbapp.dev \
+# Test CKB balance query (testnet)
+curl -X POST https://testnet.ckbapp.dev \
   -H 'Content-Type: application/json' \
   -d '{
     "id":1,"jsonrpc":"2.0","method":"get_cells_capacity",
@@ -275,14 +275,11 @@ curl -X POST https://mainnet.ckbapp.dev \
       "script":{
         "code_hash":"0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         "hash_type":"type",
-        "args":"0x36c329ed630d6ce750712a477543672adab57f4c"
+        "args":"0x<your-lock-args>"
       },
       "script_type":"lock"
     }]
   }'
-
-# Example CKB address
-# ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdjsydf39sklhfvtfnk57vvd7d2vn4kxwqpr3prn
 ```
 
 ## License
