@@ -1,150 +1,103 @@
 """
-CKB address bech32/bech32m decoder.
+CKB address decoder using official segwit_addr implementation.
 
-Supports:
-- Short format (prefix ckb/ckt, bech32): payload[0] == 0x01
-- Full format (bech32m): payload[0] in {0x00, 0x02, 0x04}
+Supports both mainnet (ckb) and testnet (ckt) addresses:
+- Short format (bech32, payload[0] == 0x01): secp256k1-blake160
+- Full format (bech32m, payload[0] == 0x00): arbitrary script
+- Deprecated full format (bech32m, payload[0] in {0x02, 0x04}): legacy
+
+ref: https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0021-ckb-address-format/0021-ckb-address-format.md
 """
 
-CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+import segwit_addr as sa
 
-BECH32_CONST = 1
-BECH32M_CONST = 0x2BC830A3
+FORMAT_TYPE_FULL = 0x00
+FORMAT_TYPE_SHORT = 0x01
+FORMAT_TYPE_FULL_DATA = 0x02
+FORMAT_TYPE_FULL_TYPE = 0x04
 
-_FORMAT_TYPE_HASH_TYPES = {
+SECP256K1_BLAKE160_CODE_HASH = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+
+# hash_type byte mapping for full format
+_HASH_TYPE_MAP = {
     0x00: "data",
     0x01: "type",
     0x02: "data1",
-    0x04: "type2",
 }
 
-SECP256K1_BLAKE160_CODE_HASH = (
-    "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
-)
 
-
-def _polymod(values):
-    GEN = [0x3B6A57B2, 0x26508E6D, 0x1EA119FA, 0x3D4233DD, 0x2A1462B3]
-    chk = 1
-    for v in values:
-        b = chk >> 25
-        chk = (chk & 0x1FFFFFF) << 5 ^ v
-        for i in range(5):
-            chk ^= GEN[i] if ((b >> i) & 1) else 0
-    return chk
-
-
-def _hrp_expand(hrp):
-    return [ord(x) >> 5 for x in hrp] + [0] + [ord(x) & 31 for x in hrp]
-
-
-def _verify_checksum(hrp, data, spec):
-    const = BECH32M_CONST if spec == "bech32m" else BECH32_CONST
-    return _polymod(_hrp_expand(hrp) + list(data)) == const
-
-
-def _detect_spec(hrp, data):
-    if _verify_checksum(hrp, data, "bech32m"):
-        return "bech32m"
-    if _verify_checksum(hrp, data, "bech32"):
-        return "bech32"
-    return None
-
-
-def _bech32_decode(bech):
-    if any(ord(x) < 33 or ord(x) > 126 for x in bech):
-        return None, None, None
-    if bech.lower() != bech and bech.upper() != bech:
-        return None, None, None
-    bech = bech.lower()
-    pos = bech.rfind("1")
-    if pos < 1 or pos + 7 > len(bech):
-        return None, None, None
-    hrp = bech[:pos]
-    data = []
-    for c in bech[pos + 1:]:
-        d = CHARSET.find(c)
-        if d == -1:
-            return None, None, None
-        data.append(d)
-    spec = _detect_spec(hrp, data)
-    if spec is None:
-        return None, None, None
-    return hrp, data[:-6], spec
-
-
-def _convertbits(data, frombits, tobits, pad=True):
-    acc = 0
-    bits = 0
-    ret = []
-    maxv = (1 << tobits) - 1
-    max_acc = (1 << (frombits + tobits - 1)) - 1
-    for value in data:
-        if value < 0 or (value >> frombits):
-            return None
-        acc = ((acc << frombits) | value) & max_acc
-        bits += frombits
-        while bits >= tobits:
-            bits -= tobits
-            ret.append((acc >> bits) & maxv)
-    if pad:
-        if bits:
-            ret.append((acc << (tobits - bits)) & maxv)
-    elif bits >= frombits or ((acc << (tobits - bits)) & maxv):
-        return None
-    return ret
-
-
-def decode_ckb_address(address):
+def decode_ckb_address(address: str) -> dict:
     """
-    Decode a CKB bech32/bech32m address.
+    Decode a CKB bech32/bech32m address (mainnet or testnet).
 
     Returns a dict:
-        {"code_hash": "0x...", "hash_type": "type"|"data"|"data1"|"type2", "args": "0x..."}
+        {"code_hash": "0x...", "hash_type": "type"|"data"|"data1", "args": "0x..."}
 
     Raises ValueError on invalid address.
     """
-    hrp, data5, spec = _bech32_decode(address)
-    if hrp is None:
-        raise ValueError(f"Invalid bech32 address: {address!r}")
-    if hrp not in ("ckb", "ckt"):
-        raise ValueError(f"Unknown CKB address prefix: {hrp!r}")
+    hrpgot, data, spec = sa.bech32_decode(address)
 
-    payload = _convertbits(data5, 5, 8, pad=False)
-    if payload is None:
+    if hrpgot is None or data is None:
+        raise ValueError(f"Invalid bech32 address: {address!r}")
+    if hrpgot not in ("ckb", "ckt"):
+        raise ValueError(f"Unknown CKB address prefix: {hrpgot!r}")
+
+    decoded = sa.convertbits(data, 5, 8, False)
+    if decoded is None:
         raise ValueError("Bit-conversion failed")
 
-    fmt = payload[0]
+    payload = bytes(decoded)
+    format_type = payload[0]
 
-    # Short format: 0x01 prefix, bech32 encoding
-    if fmt == 0x01 and spec == "bech32":
-        args_bytes = bytes(payload[1:])
-        return {
-            "code_hash": SECP256K1_BLAKE160_CODE_HASH,
-            "hash_type": "type",
-            "args": "0x" + args_bytes.hex(),
-        }
-
-    # Full format (bech32m): 0x00 only
-    if fmt == 0x00 and spec == "bech32m":
+    # Full format (bech32m): payload[0] == 0x00
+    if format_type == FORMAT_TYPE_FULL:
+        if spec != sa.Encoding.BECH32M:
+            raise ValueError("Full format address must use bech32m encoding")
         if len(payload) < 34:
             raise ValueError("Payload too short for full format address")
         ptr = 1
-        code_hash_bytes = bytes(payload[ptr:ptr + 32])
+        code_hash = "0x" + payload[ptr: ptr + 32].hex()
         ptr += 32
         hash_type_byte = payload[ptr]
         ptr += 1
-        args_bytes = bytes(payload[ptr:])
-        _hash_type_map = {0x00: "data", 0x01: "type", 0x02: "data1"}
-        if hash_type_byte not in _hash_type_map:
+        args = "0x" + payload[ptr:].hex()
+        if hash_type_byte not in _HASH_TYPE_MAP:
             raise ValueError(f"Unknown hash_type byte 0x{hash_type_byte:02x} in full format address")
-        hash_type = _hash_type_map[hash_type_byte]
+        hash_type = _HASH_TYPE_MAP[hash_type_byte]
         return {
-            "code_hash": "0x" + code_hash_bytes.hex(),
+            "code_hash": code_hash,
             "hash_type": hash_type,
-            "args": "0x" + args_bytes.hex(),
+            "args": args,
         }
 
-    raise ValueError(
-        f"Unsupported CKB address format byte 0x{fmt:02x} with spec {spec!r}"
-    )
+    # Short format (bech32): payload[0] == 0x01
+    elif format_type == FORMAT_TYPE_SHORT:
+        if spec != sa.Encoding.BECH32:
+            raise ValueError("Short format address must use bech32 encoding")
+        # payload[1] is code_index (0x00 = secp256k1-blake160-sighash)
+        # payload[2:] is the 20-byte lock args
+        args = "0x" + payload[2:].hex()
+        return {
+            "code_hash": SECP256K1_BLAKE160_CODE_HASH,
+            "hash_type": "type",
+            "args": args,
+        }
+
+    # Deprecated full format (bech32m): payload[0] in {0x02, 0x04}
+    elif format_type in (FORMAT_TYPE_FULL_DATA, FORMAT_TYPE_FULL_TYPE):
+        if spec != sa.Encoding.BECH32M:
+            raise ValueError("Deprecated full format address must use bech32m encoding")
+        if len(payload) < 33:
+            raise ValueError("Payload too short for deprecated full format address")
+        ptr = 1
+        code_hash = "0x" + payload[ptr: ptr + 32].hex()
+        ptr += 32
+        args = "0x" + payload[ptr:].hex()
+        hash_type = "data" if format_type == FORMAT_TYPE_FULL_DATA else "type"
+        return {
+            "code_hash": code_hash,
+            "hash_type": hash_type,
+            "args": args,
+        }
+
+    raise ValueError(f"Unsupported CKB address format byte 0x{format_type:02x}")
