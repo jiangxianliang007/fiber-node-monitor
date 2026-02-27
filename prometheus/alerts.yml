@@ -1,0 +1,47 @@
+groups:
+  - name: fiber_node_alerts
+    rules:
+      - alert: FiberNodeDown
+        expr: fiber_node_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Fiber node is unreachable"
+          description: "Fiber node RPC has been unreachable for more than 2 minutes."
+
+      - alert: FiberWalletBalanceLow
+        expr: fiber_wallet_ckb_balance < 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CKB wallet balance is low"
+          description: "CKB wallet balance is below 100 CKB for more than 5 minutes. Current: {{ $value }} CKB."
+
+      - alert: FiberNoPeers
+        expr: fiber_node_peers_count == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Fiber node has no peers"
+          description: "Fiber node has had 0 connected peers for more than 5 minutes."
+
+      - alert: FiberChannelStale
+        expr: (time() - fiber_channel_last_seen_timestamp) > 86400
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Fiber channel is stale"
+          description: "Channel {{ $labels.channel_id }} with peer {{ $labels.peer_id }} has had no activity for over 24 hours."
+
+      - alert: FiberChannelDisabled
+        expr: fiber_channel_enabled == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Fiber channel is disabled"
+          description: "Channel {{ $labels.channel_id }} is disabled."
