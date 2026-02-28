@@ -252,11 +252,6 @@ class FiberCollector:
             channel_id = ch.get("channel_id", "")
             if not channel_id:
                 continue
-            state = ch.get("state", {})
-            state_name = state.get("state_name", "")
-            if state_name != "CHANNEL_READY":
-                continue
-
             seen_ids.add(channel_id)
             fp = _channel_fingerprint(ch)
             existing = self._channel_state.get(channel_id)
@@ -268,6 +263,7 @@ class FiberCollector:
                 updated = True
 
         # Prune channels not seen in 24h
+
         stale_threshold = now - 86400
         stale_ids = [
             cid
@@ -360,9 +356,9 @@ class FiberCollector:
             "1 if channel is enabled, 0 otherwise",
             labels=labels,
         )
-        ch_peer_online = GaugeMetricFamily(
-            "fiber_channel_peer_online",
-            "1 if channel peer is online, 0 otherwise",
+        ch_online = GaugeMetricFamily(
+            "fiber_channel_online",
+            "1 if channel is truly usable (CHANNEL_READY + enabled + peer online), 0 otherwise",
             labels=labels,
         )
         ch_last_seen = GaugeMetricFamily(
@@ -370,10 +366,22 @@ class FiberCollector:
             "Unix timestamp of last channel state change",
             labels=labels,
         )
+        ch_state = GaugeMetricFamily(
+            "fiber_channel_state",
+            "Channel state (1=current state)",
+            labels=["node_name", "channel_id", "peer_id", "state_name"],
+        )
+        ch_status = GaugeMetricFamily(
+            "fiber_channel_status",
+            "Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled)",
+            labels=labels,
+        )
 
         total_local = 0.0
         total_remote = 0.0
         active_count = 0
+        healthy_count = 0
+        pending_count = 0
 
         for ch in channels:
             channel_id = ch.get("channel_id", "")
@@ -384,13 +392,27 @@ class FiberCollector:
 
             lb = _hex_to_ckb(ch.get("local_balance", "0x0"))
             rb = _hex_to_ckb(ch.get("remote_balance", "0x0"))
-            enabled = 1 if ch.get("enabled", False) else 0
-            peer_online = 1 if peer_id in online_peers else 0
+            enabled_bool = ch.get("enabled", False)
+            enabled = 1 if enabled_bool else 0
+            peer_online_bool = peer_id in online_peers
+
+            if state_name == "CHANNEL_READY":
+                if enabled_bool and peer_online_bool:
+                    status = 2
+                    channel_online = 1
+                else:
+                    status = 0
+                    channel_online = 0
+            else:
+                status = 1
+                channel_online = 0
 
             local_bal.add_metric(lbl, lb)
             remote_bal.add_metric(lbl, rb)
             ch_enabled.add_metric(lbl, enabled)
-            ch_peer_online.add_metric(lbl, peer_online)
+            ch_online.add_metric(lbl, channel_online)
+            ch_state.add_metric([node_name, channel_id, peer_id, state_name], 1)
+            ch_status.add_metric(lbl, status)
 
             # last_seen
             state_entry = self._channel_state.get(channel_id)
@@ -403,12 +425,18 @@ class FiberCollector:
                 total_local += lb
                 total_remote += rb
                 active_count += 1
+                if enabled_bool and peer_online_bool:
+                    healthy_count += 1
+            else:
+                pending_count += 1
 
         yield local_bal
         yield remote_bal
         yield ch_enabled
-        yield ch_peer_online
+        yield ch_online
         yield ch_last_seen
+        yield ch_state
+        yield ch_status
 
         # ---- aggregated ----
         local_total = GaugeMetricFamily(
@@ -426,12 +454,26 @@ class FiberCollector:
             "Count of CHANNEL_READY channels",
             labels=["node_name"],
         )
+        healthy_total = GaugeMetricFamily(
+            "fiber_channels_healthy_total",
+            "Count of truly usable channels (CHANNEL_READY + enabled + peer online)",
+            labels=["node_name"],
+        )
+        pending_total = GaugeMetricFamily(
+            "fiber_channels_pending_total",
+            "Count of channels not yet CHANNEL_READY",
+            labels=["node_name"],
+        )
         local_total.add_metric([node_name], total_local)
         remote_total.add_metric([node_name], total_remote)
         active_total.add_metric([node_name], active_count)
+        healthy_total.add_metric([node_name], healthy_count)
+        pending_total.add_metric([node_name], pending_count)
         yield local_total
         yield remote_total
         yield active_total
+        yield healthy_total
+        yield pending_total
 
         yield from self._collect_wallet_metrics()
         yield from self._collect_graph_metrics()

@@ -357,7 +357,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 6
       },
@@ -415,8 +415,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 4,
         "y": 6
       },
       "id": 6,
@@ -472,8 +472,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 8,
         "y": 6
       },
       "id": 7,
@@ -512,6 +512,130 @@
       },
       "fieldConfig": {
         "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 6
+      },
+      "id": 200,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "fiber_channels_healthy_total{network=~\"$network\", node_name=~\"$node\"}",
+          "legendFormat": "{{node_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Healthy Channels",
+      "type": "stat",
+      "description": "Channels that are truly usable: CHANNEL_READY + enabled + peer online"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 6
+      },
+      "id": 201,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "fiber_channels_pending_total{network=~\"$network\", node_name=~\"$node\"}",
+          "legendFormat": "{{node_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Pending Channels",
+      "type": "stat",
+      "description": "Channels not yet CHANNEL_READY (NEGOTIATING_FUNDING, AWAITING_CHANNEL_READY, etc.)"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
           "unit": "suffix: CKB",
           "color": {
             "mode": "palette-classic"
@@ -521,8 +645,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 4,
+        "x": 20,
         "y": 6
       },
       "id": 8,
@@ -837,7 +961,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Peer Online"
+              "options": "Channel Online"
             },
             "properties": [
               {
@@ -850,7 +974,7 @@
                   {
                     "options": {
                       "0": {
-                        "text": "❌ Offline"
+                        "text": "❌ Not Online"
                       },
                       "1": {
                         "text": "✅ Online"
@@ -862,7 +986,7 @@
               },
               {
                 "id": "description",
-                "value": "Whether the remote peer currently has an active TCP connection (✅ Online / ❌ Offline). Based on list_peers RPC — independent of channel state"
+                "value": "Whether the channel is truly usable (CHANNEL_READY + enabled + peer online). 1=usable, 0=not usable"
               }
             ]
           },
@@ -949,6 +1073,67 @@
                 "value": "The name identifier of the Fiber node (node_name label)"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Channel State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              },
+              {
+                "id": "description",
+                "value": "The current state of the channel (CHANNEL_READY, NEGOTIATING_FUNDING, AWAITING_CHANNEL_READY, etc.)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "🔴 Offline",
+                        "color": "red",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "🟡 Pending",
+                        "color": "yellow",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "🟢 Online",
+                        "color": "green",
+                        "index": 2
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-text"
+              },
+              {
+                "id": "description",
+                "value": "Overall channel health: 🟢 Online (CHANNEL_READY + enabled + peer online), 🟡 Pending (still establishing), 🔴 Offline (CHANNEL_READY but peer offline or disabled)"
+              }
+            ]
           }
         ]
       },
@@ -1009,7 +1194,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "fiber_channel_peer_online{network=~\"$network\", node_name=~\"$node\"}",
+          "expr": "fiber_channel_online{network=~\"$network\", node_name=~\"$node\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1036,6 +1221,28 @@
           "instant": true,
           "legendFormat": "",
           "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "fiber_channel_state{network=~\"$network\", node_name=~\"$node\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "fiber_channel_status{network=~\"$network\", node_name=~\"$node\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "H"
         }
       ],
       "title": "Channel Details",
@@ -1044,7 +1251,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(channel_id|peer_id|node_name|Value .*)$"
+              "pattern": "^(channel_id|peer_id|node_name|state_name|Value .*)$"
             }
           }
         },
@@ -1068,7 +1275,12 @@
               "peer_id 2": true,
               "peer_id 3": true,
               "peer_id 4": true,
-              "peer_id 5": true
+              "peer_id 5": true,
+              "node_name 6": true,
+              "node_name 7": true,
+              "peer_id 6": true,
+              "peer_id 7": true,
+              "state_name 1": true
             },
             "renameByName": {
               "node_name": "Node",
@@ -1077,25 +1289,30 @@
               "Value #A": "Local Balance (CKB)",
               "Value #B": "Remote Balance (CKB)",
               "Value #C": "Enabled",
-              "Value #D": "Peer Online",
+              "Value #D": "Channel Online",
               "Value #E": "Last Seen",
-              "Value #F": "Stale Duration"
+              "Value #F": "Stale Duration",
+              "Value #G": "Channel State",
+              "Value #H": "Status"
             },
             "indexByName": {
               "node_name": 0,
               "channel_id": 1,
               "peer_id": 2,
-              "Value #A": 3,
-              "Value #B": 4,
-              "Value #C": 5,
-              "Value #D": 6,
-              "Value #E": 7,
-              "Value #F": 8
+              "Value #G": 3,
+              "Value #H": 4,
+              "Value #A": 5,
+              "Value #B": 6,
+              "Value #C": 7,
+              "Value #D": 8,
+              "Value #E": 9,
+              "Value #F": 10
             }
           }
         }
       ],
-      "type": "table"
+      "type": "table",
+      "description": "Per-channel details. Channel State shows the current state (CHANNEL_READY, NEGOTIATING_FUNDING, etc.). Status summarizes overall health: 🟢 Online = truly usable (READY + enabled + peer online), 🟡 Pending = still being established, 🔴 Offline = READY but peer offline or disabled. Channel Online matches Status=Online."
     },
     {
       "collapsed": false,
