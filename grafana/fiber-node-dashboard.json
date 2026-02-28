@@ -775,6 +775,10 @@
               {
                 "id": "custom.width",
                 "value": 180
+              },
+              {
+                "id": "description",
+                "value": "Timestamp of the last channel state change (balance change, TLC activity, enabled/disabled toggle, etc.). Only updates when the channel fingerprint actually changes"
               }
             ]
           },
@@ -791,6 +795,10 @@
               {
                 "id": "custom.width",
                 "value": 150
+              },
+              {
+                "id": "description",
+                "value": "How long (in seconds) since the last channel state change: time() - last_seen. A large value means the channel has been idle with no state changes for a long time"
               }
             ]
           },
@@ -810,15 +818,19 @@
                   {
                     "options": {
                       "0": {
-                        "text": "\u274c"
+                        "text": "❌"
                       },
                       "1": {
-                        "text": "\u2705"
+                        "text": "✅"
                       }
                     },
                     "type": "value"
                   }
                 ]
+              },
+              {
+                "id": "description",
+                "value": "Whether the channel is enabled (✅) or disabled (❌)"
               }
             ]
           },
@@ -838,15 +850,19 @@
                   {
                     "options": {
                       "0": {
-                        "text": "\u274c Offline"
+                        "text": "❌ Offline"
                       },
                       "1": {
-                        "text": "\u2705 Online"
+                        "text": "✅ Online"
                       }
                     },
                     "type": "value"
                   }
                 ]
+              },
+              {
+                "id": "description",
+                "value": "Whether the remote peer currently has an active TCP connection (✅ Online / ❌ Offline). Based on list_peers RPC — independent of channel state"
               }
             ]
           },
@@ -863,6 +879,10 @@
               {
                 "id": "custom.width",
                 "value": 150
+              },
+              {
+                "id": "description",
+                "value": "Your node's balance in this channel, in CKB units"
               }
             ]
           },
@@ -879,6 +899,10 @@
               {
                 "id": "custom.width",
                 "value": 160
+              },
+              {
+                "id": "description",
+                "value": "The remote peer's balance in this channel, in CKB units"
               }
             ]
           },
@@ -891,6 +915,10 @@
               {
                 "id": "custom.width",
                 "value": 200
+              },
+              {
+                "id": "description",
+                "value": "Unique identifier of the payment channel"
               }
             ]
           },
@@ -903,6 +931,22 @@
               {
                 "id": "custom.width",
                 "value": 200
+              },
+              {
+                "id": "description",
+                "value": "The remote peer's node ID for this channel"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Node"
+            },
+            "properties": [
+              {
+                "id": "description",
+                "value": "The name identifier of the Fiber node (node_name label)"
               }
             ]
           }
@@ -976,7 +1020,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"}",
+          "expr": "fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"} * 1000",
           "format": "table",
           "instant": true,
           "legendFormat": "",
