@@ -37,10 +37,19 @@ def _hex_to_ckb(value: str) -> float:
     return _hex_to_int(value) / SHANNONS_PER_CKB
 
 
-def _rpc_call(url: str, method: str, params: list, timeout: int = 10) -> Any:
+def _rpc_call(
+    url: str,
+    method: str,
+    params: list,
+    timeout: int = 10,
+    auth_token: Optional[str] = None,
+) -> Any:
     """Make a JSON-RPC 2.0 call and return the result field."""
     payload = {"id": 1, "jsonrpc": "2.0", "method": method, "params": params}
-    resp = requests.post(url, json=payload, timeout=timeout)
+    headers = {}
+    if auth_token:
+        headers["Authorization"] = f"Bearer {auth_token}"
+    resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
     if "error" in data and data["error"] is not None:
@@ -74,6 +83,7 @@ class FiberCollector:
         node_name: str,
         state_file: str,
         graph_scrape_interval: int,
+        fiber_rpc_token: Optional[str] = None,
     ):
         self.fiber_rpc_url = fiber_rpc_url
         self.ckb_rpc_url = ckb_rpc_url
@@ -81,6 +91,11 @@ class FiberCollector:
         self.node_name = node_name
         self.state_file = state_file
         self.graph_scrape_interval = graph_scrape_interval
+        self.fiber_rpc_token = fiber_rpc_token
+        logger.info(
+            "Fiber RPC auth: %s",
+            "enabled" if fiber_rpc_token else "disabled",
+        )
 
         # Decode CKB address once at startup
         self.lock_script = decode_ckb_address(ckb_address)
@@ -147,7 +162,9 @@ class FiberCollector:
             if cursor is not None:
                 params["after"] = cursor
             params["limit"] = "0x64"
-            result = _rpc_call(self.fiber_rpc_url, method, [params])
+            result = _rpc_call(
+                self.fiber_rpc_url, method, [params], auth_token=self.fiber_rpc_token
+            )
             if result is None:
                 break
             batch = result.get(result_key, [])
@@ -190,14 +207,14 @@ class FiberCollector:
     # ------------------------------------------------------------------
 
     def _get_node_info(self) -> Optional[Dict]:
-        return _rpc_call(self.fiber_rpc_url, "node_info", [])
+        return _rpc_call(self.fiber_rpc_url, "node_info", [], auth_token=self.fiber_rpc_token)
 
     def _get_channels(self) -> List[Dict]:
-        result = _rpc_call(self.fiber_rpc_url, "list_channels", [{}])
+        result = _rpc_call(self.fiber_rpc_url, "list_channels", [{}], auth_token=self.fiber_rpc_token)
         return result.get("channels", []) if result else []
 
     def _get_peers(self) -> Set[str]:
-        result = _rpc_call(self.fiber_rpc_url, "list_peers", [])
+        result = _rpc_call(self.fiber_rpc_url, "list_peers", [], auth_token=self.fiber_rpc_token)
         peers = result.get("peers", []) if result else []
         return {p["peer_id"] for p in peers if "peer_id" in p}
 
@@ -465,6 +482,7 @@ def main():
     node_name = os.environ.get("NODE_NAME", "fiber-node-01")
     graph_scrape_interval = int(os.environ.get("GRAPH_SCRAPE_INTERVAL", "300"))
     state_file = os.environ.get("STATE_FILE", "state.json")
+    fiber_rpc_token = os.environ.get("FIBER_RPC_TOKEN", "").strip() or None
 
     if not ckb_address:
         logger.error("CKB_ADDRESS environment variable is required but not set.")
@@ -472,6 +490,7 @@ def main():
 
     logger.info("Configuration:")
     logger.info("  FIBER_RPC_URL=%s", fiber_rpc_url)
+    logger.info("  FIBER_RPC_TOKEN=%s", "enabled" if fiber_rpc_token else "disabled")
     logger.info("  CKB_RPC_URL=%s", ckb_rpc_url)
     logger.info("  CKB_ADDRESS=%s", ckb_address)
     logger.info("  EXPORTER_PORT=%d", exporter_port)
@@ -486,6 +505,7 @@ def main():
         node_name=node_name,
         state_file=state_file,
         graph_scrape_interval=graph_scrape_interval,
+        fiber_rpc_token=fiber_rpc_token,
     )
     REGISTRY.register(collector)
 
