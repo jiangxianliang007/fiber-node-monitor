@@ -185,6 +185,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `FIBER_RPC_URL` | `http://127.0.0.1:8227` | Fiber node JSON-RPC endpoint |
+| `FIBER_RPC_TOKEN` | *(empty)* | Biscuit Bearer token for Fiber RPC auth. Required only if your node has RPC authentication enabled. |
 | `CKB_RPC_URL` | `https://mainnet.ckbapp.dev` | CKB RPC / Indexer endpoint |
 | `CKB_ADDRESS` | *(required)* | CKB wallet address to monitor |
 | `EXPORTER_PORT` | `8222` | HTTP port for `/metrics` |
@@ -193,6 +194,36 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `STATE_FILE` | `state.json` | Path to persist channel `last_seen` state |
 
 > **Note:** There is no `NETWORK` variable. The `network` label is injected exclusively by Prometheus `scrape_configs`.
+
+## Biscuit RPC Authentication
+
+Fiber nodes can be configured with a `biscuit_public_key` to require authentication on all RPC endpoints. When enabled, every RPC call must include a valid Biscuit Bearer token in the `Authorization` header.
+
+### When is a token required?
+
+- **Required**: Your Fiber node config has `biscuit_public_key` set (typically when the RPC is exposed on a public IP address).
+- **Not required**: Your Fiber node RPC is only accessible on a private/local address with no `biscuit_public_key` configured.
+
+### Minimum required permissions
+
+The exporter only needs **read** access. The token used must grant at least the following permissions:
+
+```datalog
+read("node");
+read("channels");
+read("peers");
+read("graph");
+```
+
+> **Security note:** Keep your Biscuit private key secure. Only share the generated token, not the private key. Treat the token like a password — store it in `.env` and never commit it to version control.
+
+### Configuration
+
+Set the token in your `.env` file:
+
+```
+FIBER_RPC_TOKEN=<your-biscuit-token>
+```
 
 ## Metrics Reference
 
