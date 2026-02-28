@@ -1000,7 +1000,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(channel_id|peer_id|node_name|Value .*)$"
+              "pattern": "^(channel_id|peer_id|node_name|Value.*)$"
             }
           }
         },
