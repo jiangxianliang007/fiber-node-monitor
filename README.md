@@ -201,7 +201,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `FIBER_RPC_URL` | `http://127.0.0.1:8227` | Fiber node JSON-RPC endpoint |
-| `FIBER_RPC_TOKEN` | *(empty)* | Biscuit Bearer token for Fiber RPC auth. Required only if your node has RPC authentication enabled. |
+| `FIBER_RPC_TOKEN` | *(empty)* | Bearer token for Fiber RPC authentication. Set this if your node has RPC authentication enabled. |
 | `CKB_RPC_URL` | `https://mainnet.ckbapp.dev` | CKB RPC / Indexer endpoint |
 | `CKB_ADDRESS` | *(required)* | CKB wallet address to monitor |
 | `EXPORTER_PORT` | `8222` | HTTP port for `/metrics` |
@@ -210,36 +210,6 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `STATE_FILE` | `state.json` | Path to persist channel `last_seen` state |
 
 > **Note:** There is no `NETWORK` variable. The `network` label is injected exclusively by Prometheus `scrape_configs`.
-
-## Biscuit RPC Authentication
-
-Fiber nodes can be configured with a `biscuit_public_key` to require authentication on all RPC endpoints. When enabled, every RPC call must include a valid Biscuit Bearer token in the `Authorization` header.
-
-### When is a token required?
-
-- **Required**: Your Fiber node config has `biscuit_public_key` set (typically when the RPC is exposed on a public IP address).
-- **Not required**: Your Fiber node RPC is only accessible on a private/local address with no `biscuit_public_key` configured.
-
-### Minimum required permissions
-
-The exporter only needs **read** access. The token used must grant at least the following permissions:
-
-```datalog
-read("node");
-read("channels");
-read("peers");
-read("graph");
-```
-
-> **Security note:** Keep your Biscuit private key secure. Only share the generated token, not the private key. Treat the token like a password — store it in `.env` and never commit it to version control.
-
-### Configuration
-
-Set the token in your `.env` file:
-
-```
-FIBER_RPC_TOKEN=<your-biscuit-token>
-```
 
 ## Metrics Reference
 
@@ -264,7 +234,9 @@ FIBER_RPC_TOKEN=<your-biscuit-token>
 | `fiber_channel_local_balance_ckb` | Gauge | `node_name`, `channel_id`, `peer_id` | Local balance in CKB |
 | `fiber_channel_remote_balance_ckb` | Gauge | `node_name`, `channel_id`, `peer_id` | Remote balance in CKB |
 | `fiber_channel_enabled` | Gauge | `node_name`, `channel_id`, `peer_id` | 1 if enabled |
-| `fiber_channel_peer_online` | Gauge | `node_name`, `channel_id`, `peer_id` | 1 if peer is currently connected |
+| `fiber_channel_online` | Gauge | `node_name`, `channel_id`, `peer_id` | 1 if channel is truly usable (CHANNEL_READY + enabled + peer online), 0 otherwise |
+| `fiber_channel_state` | Gauge | `node_name`, `channel_id`, `peer_id`, `state_name` | Channel state (1=current state) |
+| `fiber_channel_status` | Gauge | `node_name`, `channel_id`, `peer_id` | Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled) |
 | `fiber_channel_last_seen_timestamp` | Gauge | `node_name`, `channel_id`, `peer_id` | Unix timestamp of last state change |
 
 ### Aggregated
@@ -274,6 +246,8 @@ FIBER_RPC_TOKEN=<your-biscuit-token>
 | `fiber_channels_local_balance_total_ckb` | Gauge | `node_name` | Sum of local balances |
 | `fiber_channels_remote_balance_total_ckb` | Gauge | `node_name` | Sum of remote balances |
 | `fiber_channels_active_total` | Gauge | `node_name` | Count of `CHANNEL_READY` channels |
+| `fiber_channels_healthy_total` | Gauge | `node_name` | Count of truly usable channels (CHANNEL_READY + enabled + peer online) |
+| `fiber_channels_pending_total` | Gauge | `node_name` | Count of channels not yet CHANNEL_READY |
 
 ### Network Graph (cached)
 
@@ -291,7 +265,7 @@ FIBER_RPC_TOKEN=<your-biscuit-token>
 | `FiberWalletBalanceLow` | `fiber_wallet_ckb_balance < 100` | 5m | warning |
 | `FiberNoPeers` | `fiber_node_peers_count == 0` | 5m | warning |
 | `FiberChannelStale` | `time() - fiber_channel_last_seen_timestamp > 86400` | 10m | warning |
-| `FiberChannelPeerOffline` | `fiber_channel_peer_online == 0` | 15m | warning |
+| `FiberChannelPeerOffline` | `fiber_channel_online == 0` | 15m | warning |
 | `FiberChannelDisabled` | `fiber_channel_enabled == 0` | 10m | warning |
 
 ## Grafana Dashboard Import
