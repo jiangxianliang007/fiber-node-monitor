@@ -11,6 +11,10 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 - **Persistent channel state** — tracks `last_seen` timestamp per channel across restarts
 - **CKB wallet balance** — decodes bech32/bech32m addresses; queries CKB Indexer
 
+## Dashboard Preview
+
+![Grafana Dashboard](images/grafana-dashboard.png)
+
 ## Architecture
 
 ```
