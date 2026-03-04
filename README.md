@@ -82,6 +82,22 @@ Metrics are available at `http://localhost:8222/metrics`.
 
 ### 5. Run with Docker
 
+#### Using the pre-built image
+
+```bash
+# Pull the latest pre-built image
+docker pull ghcr.io/jiangxianliang007/fiber-node-monitor:latest
+
+# Run
+docker run -d \
+  --env-file .env \
+  -p 8222:8222 \
+  --name fiber-exporter \
+  ghcr.io/jiangxianliang007/fiber-node-monitor:latest
+```
+
+#### Building locally
+
 ```bash
 docker build -t fiber-exporter ./exporter
 docker run -d \
@@ -125,13 +141,13 @@ Using Docker Compose:
 version: "3.8"
 services:
   fiber-exporter-mainnet-01:
-    image: fiber-exporter
+    image: ghcr.io/jiangxianliang007/fiber-node-monitor:latest
     env_file: /etc/fiber/mainnet-01.env
     ports:
       - "8222:8222"
 
   fiber-exporter-testnet-01:
-    image: fiber-exporter
+    image: ghcr.io/jiangxianliang007/fiber-node-monitor:latest
     env_file: /etc/fiber/testnet-01.env
     ports:
       - "8223:8223"
