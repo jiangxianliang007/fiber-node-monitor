@@ -38,13 +38,13 @@ groups:
           description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) has had no activity for over 24 hours."
 
       - alert: FiberChannelPeerOffline
-        expr: fiber_channel_peer_online == 0
+        expr: fiber_channel_online == 0
         for: 15m
         labels:
           severity: warning
         annotations:
           summary: "Channel peer offline on {{ $labels.node_name }}"
-          description: "Peer {{ $labels.peer_id }} of channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) has been disconnected for over 15 minutes."
+          description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) is not usable (not CHANNEL_READY, peer offline, or disabled) for over 15 minutes."
 
       - alert: FiberChannelDisabled
         expr: fiber_channel_enabled == 0
