@@ -57,7 +57,7 @@ def _rpc_call(
     return data.get("result")
 
 
-def _channel_fingerprint(ch: Dict) -> tuple:
+def _channel_fingerprint(ch: Dict, peer_online: bool) -> tuple:
     """Compute a fingerprint tuple from channel state fields."""
     state = ch.get("state", {})
     state_name = state.get("state_name", "")
@@ -69,6 +69,7 @@ def _channel_fingerprint(ch: Dict) -> tuple:
         ch.get("received_tlc_balance", "0x0"),
         len(ch.get("pending_tlcs", [])),
         ch.get("enabled", False),
+        peer_online,
     )
 
 
@@ -244,7 +245,7 @@ class FiberCollector:
     # Channel last-seen update
     # ------------------------------------------------------------------
 
-    def _update_channel_last_seen(self, channels: List[Dict], now: float):
+    def _update_channel_last_seen(self, channels: List[Dict], online_peers: Set[str], now: float):
         seen_ids = set()
         updated = False
 
@@ -253,12 +254,23 @@ class FiberCollector:
             if not channel_id:
                 continue
             seen_ids.add(channel_id)
-            fp = _channel_fingerprint(ch)
+            peer_id = ch.get("peer_id", "")
+            peer_online = peer_id in online_peers
+            fp = _channel_fingerprint(ch, peer_online)
             existing = self._channel_state.get(channel_id)
             if existing is None or existing.get("fingerprint") != list(fp):
+                state = ch.get("state", {})
+                state_name = state.get("state_name", "")
+                enabled_bool = ch.get("enabled", False)
+                # Only update last_seen when channel is truly online
+                if state_name == "CHANNEL_READY" and enabled_bool and peer_online:
+                    new_last_seen = now
+                else:
+                    # Fingerprint changed but channel is not online; preserve existing last_seen
+                    new_last_seen = existing.get("last_seen", 0) if existing else 0
                 self._channel_state[channel_id] = {
                     "fingerprint": list(fp),
-                    "last_seen": now,
+                    "last_seen": new_last_seen,
                 }
                 updated = True
 
@@ -337,7 +349,7 @@ class FiberCollector:
             channels = []
             online_peers = set()
 
-        self._update_channel_last_seen(channels, now)
+        self._update_channel_last_seen(channels, online_peers, now)
 
         labels = ["node_name", "channel_id", "peer_id"]
 
@@ -363,7 +375,7 @@ class FiberCollector:
         )
         ch_last_seen = GaugeMetricFamily(
             "fiber_channel_last_seen_timestamp",
-            "Unix timestamp of last channel state change",
+            "Unix timestamp when channel was last fully online (CHANNEL_READY + enabled + peer connected)",
             labels=labels,
         )
         ch_state = GaugeMetricFamily(
@@ -419,7 +431,7 @@ class FiberCollector:
             if state_entry:
                 ch_last_seen.add_metric(lbl, state_entry["last_seen"])
             else:
-                ch_last_seen.add_metric(lbl, now)
+                ch_last_seen.add_metric(lbl, 0)
 
             if state_name == "CHANNEL_READY":
                 total_local += lb

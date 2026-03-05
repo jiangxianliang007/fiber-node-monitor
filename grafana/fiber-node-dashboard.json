@@ -876,7 +876,20 @@
               },
               {
                 "id": "description",
-                "value": "Timestamp of the last channel state change (balance change, TLC activity, enabled/disabled toggle, etc.). Only updates when the channel fingerprint actually changes"
+                "value": "Timestamp when the channel was last fully online (CHANNEL_READY + enabled + peer connected). Displays 'Never' if the channel has never been fully online"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "Never"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
               }
             ]
           },
@@ -896,7 +909,7 @@
               },
               {
                 "id": "description",
-                "value": "How long (in seconds) since the last channel state change: time() - last_seen. A large value means the channel has been idle with no state changes for a long time"
+                "value": "How long (in seconds) since the channel was last fully online: time() - last_seen. A large value means the channel has not been fully online for a long time. Displays 'Never' if the channel has never been fully online"
               }
             ]
           },
@@ -1190,7 +1203,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "time() - fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"}",
+          "expr": "time() - fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"} and fiber_channel_last_seen_timestamp{network=~\"$network\", node_name=~\"$node\"} > 0",
           "format": "table",
           "instant": true,
           "legendFormat": "",
