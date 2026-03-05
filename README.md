@@ -8,7 +8,7 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 - **Grafana dashboard** — importable JSON with cascading template variables (`datasource → network → node`)
 - **Prometheus alert rules** — covers node down, low balance, no peers, stale/disabled/offline channels
 - **Multi-node / multi-network** support — one exporter per node; `network` label injected by Prometheus scrape config
-- **Persistent channel state** — tracks `last_seen` timestamp per channel across restarts
+- **Persistent channel state** — tracks `last_seen` timestamp per channel across restarts; only updates when the channel is fully online (CHANNEL_READY + enabled + peer connected)
 - **CKB wallet balance** — decodes bech32/bech32m addresses; queries CKB Indexer
 
 ## Dashboard Preview
@@ -261,7 +261,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `fiber_channel_online` | Gauge | `node_name`, `channel_id`, `peer_id` | 1 if channel is truly usable (CHANNEL_READY + enabled + peer online), 0 otherwise |
 | `fiber_channel_state` | Gauge | `node_name`, `channel_id`, `peer_id`, `state_name` | Channel state (1=current state) |
 | `fiber_channel_status` | Gauge | `node_name`, `channel_id`, `peer_id` | Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled) |
-| `fiber_channel_last_seen_timestamp` | Gauge | `node_name`, `channel_id`, `peer_id` | Unix timestamp of last state change |
+| `fiber_channel_last_seen_timestamp` | Gauge | `node_name`, `channel_id`, `peer_id` | Unix timestamp when channel was last fully online (CHANNEL_READY + enabled + peer connected); 0 if never |
 
 ### Aggregated
 
@@ -288,7 +288,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `FiberNodeDown` | `fiber_node_up == 0` | 2m | critical |
 | `FiberWalletBalanceLow` | `fiber_wallet_ckb_balance < 100` | 5m | warning |
 | `FiberNoPeers` | `fiber_node_peers_count == 0` | 5m | warning |
-| `FiberChannelStale` | `time() - fiber_channel_last_seen_timestamp > 86400` | 10m | warning |
+| `FiberChannelStale` | `(time() - fiber_channel_last_seen_timestamp > 86400) and (fiber_channel_last_seen_timestamp > 0)` | 10m | warning |
 | `FiberChannelPeerOffline` | `fiber_channel_online == 0` | 15m | warning |
 | `FiberChannelDisabled` | `fiber_channel_enabled == 0` | 10m | warning |
 

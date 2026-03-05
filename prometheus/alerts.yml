@@ -29,13 +29,13 @@ groups:
           description: "{{ $labels.node_name }} ({{ $labels.network }}) has 0 peers for over 5 minutes."
 
       - alert: FiberChannelStale
-        expr: (time() - fiber_channel_last_seen_timestamp) > 86400
+        expr: (time() - fiber_channel_last_seen_timestamp > 86400) and (fiber_channel_last_seen_timestamp > 0)
         for: 10m
         labels:
           severity: warning
         annotations:
           summary: "Stale channel on {{ $labels.node_name }}"
-          description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) has had no activity for over 24 hours."
+          description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) has not been fully online for over 24 hours."
 
       - alert: FiberChannelPeerOffline
         expr: fiber_channel_online == 0
