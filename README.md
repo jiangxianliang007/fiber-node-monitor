@@ -15,6 +15,28 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 
 ![Grafana Dashboard](images/grafana-dashboard.png)
 
+### Dashboard Panels
+
+| Section | Panel | Type | Description |
+|---------|-------|------|-------------|
+| Node Overview | Node Status | Stat | Up/down status per node |
+| Node Overview | Total Channels | Stat | Sum of all channel counts across selected nodes |
+| Node Overview | CKB Wallet Balance | Bar gauge | Wallet balance per node (horizontal, gradient, red/yellow/green thresholds) |
+| Node Overview | Peers Count | Timeseries | Peer count trend per node with last value in legend |
+| Node Overview | Channel Count | Timeseries | Channel count trend per node with last value in legend |
+| Channel Balances | Total Local Balance | Timeseries | Local balance trend per node (CKB) |
+| Channel Balances | Total Remote Balance | Timeseries | Remote balance trend per node (CKB) |
+| Channel Balances | Active Channels | Timeseries | CHANNEL_READY count trend per node |
+| Channel Balances | Healthy Channels | Timeseries | Truly usable channels trend (READY + enabled + peer online) |
+| Channel Balances | Pending Channels | Stat | Channels not yet CHANNEL_READY |
+| Network Graph | Graph Nodes | Timeseries | Total nodes in the network graph |
+| Network Graph | Graph Channels | Timeseries | Total channels in the network graph |
+| Network Graph | Total Capacity | Timeseries | Total network capacity trend (CKB) |
+| Channel Details | Channel Details | Table | Per-channel breakdown with state, status, balances, and last-seen |
+| Trends | Peers Over Time | Timeseries | Peer count history with last value in legend |
+| Trends | Channels Over Time | Timeseries | Channel count history with last value in legend |
+| Trends | Balances Over Time | Timeseries | Local and remote balance history with last value in legend |
+
 ## Architecture
 
 ```
