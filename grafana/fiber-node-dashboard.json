@@ -168,10 +168,10 @@
         "x": 6,
         "y": 1
       },
-      "id": 2,
+      "id": 16,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -182,6 +182,54 @@
           "values": false
         },
         "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(fiber_node_channel_count{network=~\"$network\", node_name=~\"$node\"})",
+          "legendFormat": "Total Channels",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Channels",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -195,7 +243,7 @@
         }
       ],
       "title": "Peers Count",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -204,41 +252,32 @@
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 8,
+        "w": 12,
         "x": 12,
-        "y": 1
+        "y": 5
       },
       "id": 3,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -252,7 +291,7 @@
         }
       ],
       "title": "Channel Count",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -287,16 +326,14 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 12,
+        "x": 12,
         "y": 1
       },
       "id": 4,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
+        "displayMode": "gradient",
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -304,7 +341,9 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showUnfilled": true,
+        "minVizHeight": 10,
+        "minVizWidth": 0
       },
       "targets": [
         {
@@ -318,7 +357,7 @@
         }
       ],
       "title": "CKB Wallet Balance",
-      "type": "stat"
+      "type": "bargauge"
     },
     {
       "collapsed": false,
@@ -326,7 +365,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 13
       },
       "id": 101,
       "title": "Channel Balances",
@@ -339,42 +378,33 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "suffix: CKB",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
-          }
+            "mode": "palette-classic"
+          },
+          "unit": "suffix: CKB"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
+        "h": 8,
+        "w": 12,
         "x": 0,
-        "y": 6
+        "y": 14
       },
       "id": 5,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -388,7 +418,7 @@
         }
       ],
       "title": "Total Local Balance",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -397,42 +427,33 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "suffix: CKB",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "purple",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
-          }
+            "mode": "palette-classic"
+          },
+          "unit": "suffix: CKB"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 6
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
       },
       "id": 6,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -446,7 +467,7 @@
         }
       ],
       "title": "Total Remote Balance",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -455,41 +476,32 @@
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 6
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 22
       },
       "id": 7,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -503,7 +515,7 @@
         }
       ],
       "title": "Active Channels",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -512,45 +524,32 @@
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
+        "h": 8,
+        "w": 12,
         "x": 12,
-        "y": 6
+        "y": 22
       },
       "id": 200,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -564,7 +563,7 @@
         }
       ],
       "title": "Healthy Channels",
-      "type": "stat",
+      "type": "timeseries",
       "description": "Channels that are truly usable: CHANNEL_READY + enabled + peer online"
     },
     {
@@ -594,10 +593,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 6
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 30
       },
       "id": 201,
       "options": {
@@ -630,59 +629,12 @@
       "description": "Channels not yet CHANNEL_READY (NEGOTIATING_FUNDING, AWAITING_CHANNEL_READY, etc.)"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "suffix: CKB",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 6
-      },
-      "id": 8,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "fiber_wallet_ckb_balance{network=~\"$network\", node_name=~\"$node\"}",
-          "legendFormat": "{{node_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Wallet Balance Trend",
-      "type": "timeseries"
-    },
-    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 36
       },
       "id": 102,
       "title": "Network Graph",
@@ -695,41 +647,32 @@
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 8,
         "x": 0,
-        "y": 11
+        "y": 37
       },
       "id": 9,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -743,7 +686,7 @@
         }
       ],
       "title": "Graph Nodes",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -752,41 +695,32 @@
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 8,
         "x": 8,
-        "y": 11
+        "y": 37
       },
       "id": 10,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -800,7 +734,7 @@
         }
       ],
       "title": "Graph Channels",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -809,42 +743,33 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "suffix: CKB",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
-          }
+            "mode": "palette-classic"
+          },
+          "unit": "suffix: CKB"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 8,
         "x": 16,
-        "y": 11
+        "y": 37
       },
       "id": 11,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
+        "legend": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
@@ -858,7 +783,7 @@
         }
       ],
       "title": "Total Capacity",
-      "type": "stat"
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -866,7 +791,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 45
       },
       "id": 103,
       "title": "Channel Details",
@@ -1141,7 +1066,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 46
       },
       "id": 12,
       "options": {
@@ -1320,7 +1245,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 56
       },
       "id": 104,
       "title": "Trends",
@@ -1343,19 +1268,21 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 27
+        "y": 57
       },
       "id": 13,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -1389,19 +1316,21 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 27
+        "y": 57
       },
       "id": 14,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -1436,19 +1365,21 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 27
+        "y": 57
       },
       "id": 15,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
