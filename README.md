@@ -29,13 +29,11 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 | Channel Balances | Active Channels | Timeseries | CHANNEL_READY count trend per node |
 | Channel Balances | Healthy Channels | Timeseries | Truly usable channels trend (READY + enabled + peer online) |
 | Channel Balances | Pending Channels | Stat | Channels not yet CHANNEL_READY |
+| Channel Balances | Pending Channels Over Time | Timeseries | Trend of channels not yet CHANNEL_READY over time |
 | Network Graph | Graph Nodes | Timeseries | Total nodes in the network graph |
 | Network Graph | Graph Channels | Timeseries | Total channels in the network graph |
 | Network Graph | Total Capacity | Timeseries | Total network capacity trend (CKB) |
 | Channel Details | Channel Details | Table | Per-channel breakdown with state, status, balances, and last-seen |
-| Trends | Peers Over Time | Timeseries | Peer count history with last value in legend |
-| Trends | Channels Over Time | Timeseries | Channel count history with last value in legend |
-| Trends | Balances Over Time | Timeseries | Local and remote balance history with last value in legend |
 
 ## Architecture
 
