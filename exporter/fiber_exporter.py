@@ -320,6 +320,24 @@ class FiberCollector:
 
         yield node_up
 
+        # ---- fiber_node_info ----
+        node_info_metric = GaugeMetricFamily(
+            "fiber_node_info",
+            "Fiber node metadata info (version, commit, identity). Value is always 1.",
+            labels=["node_name", "version", "commit_hash", "pubkey", "chain_hash"],
+        )
+        node_info_metric.add_metric(
+            [
+                node_name,
+                node_info.get("version") or "",
+                node_info.get("commit_hash") or "",
+                node_info.get("pubkey") or "",
+                node_info.get("chain_hash") or "",
+            ],
+            1,
+        )
+        yield node_info_metric
+
         # ---- node-level metrics ----
         peers_count = GaugeMetricFamily(
             "fiber_node_peers_count",

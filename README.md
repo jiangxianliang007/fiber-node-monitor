@@ -20,6 +20,7 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 | Section | Panel | Type | Description |
 |---------|-------|------|-------------|
 | Node Overview | Node Status | Stat | Up/down status per node |
+| Node Overview | Node Version Info | Table | Node version, commit hash, public key, and chain hash per node |
 | Node Overview | Total Channels | Stat | Sum of all channel counts across selected nodes |
 | Node Overview | CKB Wallet Balance | Bar gauge | Wallet balance per node (horizontal, gradient, red/yellow/green thresholds) |
 | Node Overview | Peers Count | Timeseries | Peer count trend per node with last value in legend |
@@ -242,6 +243,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
 | `fiber_node_up` | Gauge | `node_name` | 1 if Fiber RPC reachable, 0 otherwise |
+| `fiber_node_info` | Gauge | `node_name`, `version`, `commit_hash`, `pubkey`, `chain_hash` | Node metadata (value always 1) |
 | `fiber_node_peers_count` | Gauge | `node_name` | Number of connected peers |
 | `fiber_node_channel_count` | Gauge | `node_name` | Total channel count |
 
@@ -291,6 +293,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `FiberChannelStale` | `(time() - fiber_channel_last_seen_timestamp > 86400) and (fiber_channel_last_seen_timestamp > 0)` | 10m | warning |
 | `FiberChannelPeerOffline` | `fiber_channel_online == 0` | 15m | warning |
 | `FiberChannelDisabled` | `fiber_channel_enabled == 0` | 10m | warning |
+| `FiberNodeVersionChanged` | `changes(fiber_node_info[1d]) > 0` | — | info |
 
 ## Grafana Dashboard Import
 

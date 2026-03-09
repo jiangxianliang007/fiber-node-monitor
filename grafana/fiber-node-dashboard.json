@@ -360,12 +360,82 @@
       "type": "bargauge"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Shows node version, commit hash, public key, and chain hash for each selected node",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 200,
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": []
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "fiber_node_info{network=~\"$network\", node_name=~\"$node\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Node Version Info",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Value": true,
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "network": true
+            },
+            "renameByName": {
+              "node_name": "Node",
+              "version": "Version",
+              "commit_hash": "Commit Hash",
+              "pubkey": "Public Key",
+              "chain_hash": "Chain Hash"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 19
       },
       "id": 101,
       "title": "Channel Balances",
@@ -389,7 +459,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 20
       },
       "id": 5,
       "options": {
@@ -438,7 +508,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 20
       },
       "id": 6,
       "options": {
@@ -486,7 +556,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 28
       },
       "id": 7,
       "options": {
@@ -534,7 +604,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 28
       },
       "id": 200,
       "options": {
@@ -596,7 +666,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 30
+        "y": 36
       },
       "id": 201,
       "options": {
@@ -646,7 +716,7 @@
         "h": 8,
         "w": 16,
         "x": 8,
-        "y": 30
+        "y": 36
       },
       "id": 202,
       "options": {
@@ -683,7 +753,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 44
       },
       "id": 102,
       "title": "Network Graph",
@@ -706,7 +776,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 39
+        "y": 45
       },
       "id": 9,
       "options": {
@@ -754,7 +824,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 39
+        "y": 45
       },
       "id": 10,
       "options": {
@@ -803,7 +873,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 39
+        "y": 45
       },
       "id": 11,
       "options": {
@@ -840,7 +910,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 53
       },
       "id": 103,
       "title": "Channel Details",
@@ -929,10 +999,10 @@
                   {
                     "options": {
                       "0": {
-                        "text": "❌"
+                        "text": "\u274c"
                       },
                       "1": {
-                        "text": "✅"
+                        "text": "\u2705"
                       }
                     },
                     "type": "value"
@@ -941,7 +1011,7 @@
               },
               {
                 "id": "description",
-                "value": "Whether the channel is enabled (✅) or disabled (❌)"
+                "value": "Whether the channel is enabled (\u2705) or disabled (\u274c)"
               }
             ]
           },
@@ -961,10 +1031,10 @@
                   {
                     "options": {
                       "0": {
-                        "text": "❌ Not Online"
+                        "text": "\u274c Not Online"
                       },
                       "1": {
-                        "text": "✅ Online"
+                        "text": "\u2705 Online"
                       }
                     },
                     "type": "value"
@@ -1093,17 +1163,17 @@
                   {
                     "options": {
                       "0": {
-                        "text": "🔴 Offline",
+                        "text": "\ud83d\udd34 Offline",
                         "color": "red",
                         "index": 0
                       },
                       "1": {
-                        "text": "🟡 Pending",
+                        "text": "\ud83d\udfe1 Pending",
                         "color": "yellow",
                         "index": 1
                       },
                       "2": {
-                        "text": "🟢 Online",
+                        "text": "\ud83d\udfe2 Online",
                         "color": "green",
                         "index": 2
                       }
@@ -1118,7 +1188,7 @@
               },
               {
                 "id": "description",
-                "value": "Overall channel health: 🟢 Online (CHANNEL_READY + enabled + peer online), 🟡 Pending (still establishing), 🔴 Offline (CHANNEL_READY but peer offline or disabled)"
+                "value": "Overall channel health: \ud83d\udfe2 Online (CHANNEL_READY + enabled + peer online), \ud83d\udfe1 Pending (still establishing), \ud83d\udd34 Offline (CHANNEL_READY but peer offline or disabled)"
               }
             ]
           }
@@ -1128,7 +1198,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 54
       },
       "id": 12,
       "options": {
@@ -1299,7 +1369,7 @@
         }
       ],
       "type": "table",
-      "description": "Per-channel details. Channel State shows the current state (CHANNEL_READY, NEGOTIATING_FUNDING, etc.). Status summarizes overall health: 🟢 Online = truly usable (READY + enabled + peer online), 🟡 Pending = still being established, 🔴 Offline = READY but peer offline or disabled. Channel Online matches Status=Online."
+      "description": "Per-channel details. Channel State shows the current state (CHANNEL_READY, NEGOTIATING_FUNDING, etc.). Status summarizes overall health: \ud83d\udfe2 Online = truly usable (READY + enabled + peer online), \ud83d\udfe1 Pending = still being established, \ud83d\udd34 Offline = READY but peer offline or disabled. Channel Online matches Status=Online."
     }
   ],
   "refresh": "30s",
