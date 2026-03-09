@@ -54,3 +54,11 @@ groups:
         annotations:
           summary: "Channel disabled on {{ $labels.node_name }}"
           description: "Channel {{ $labels.channel_id }} on {{ $labels.node_name }} ({{ $labels.network }}) is disabled."
+
+      - alert: FiberNodeVersionChanged
+        expr: changes(fiber_node_info[1d]) > 0
+        labels:
+          severity: info
+        annotations:
+          summary: "Fiber node {{ $labels.node_name }} version changed"
+          description: "Node {{ $labels.node_name }} version is now {{ $labels.version }} (commit {{ $labels.commit_hash }})"
