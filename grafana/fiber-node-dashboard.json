@@ -1308,7 +1308,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(channel_id|peer_id|node_name|state_name|Value .*)$"
+              "pattern": "^(channel_id|pubkey|node_name|state_name|Value .*)$"
             }
           }
         },
@@ -1328,21 +1328,21 @@
               "node_name 3": true,
               "node_name 4": true,
               "node_name 5": true,
-              "peer_id 1": true,
-              "peer_id 2": true,
-              "peer_id 3": true,
-              "peer_id 4": true,
-              "peer_id 5": true,
+              "pubkey 1": true,
+              "pubkey 2": true,
+              "pubkey 3": true,
+              "pubkey 4": true,
+              "pubkey 5": true,
               "node_name 6": true,
               "node_name 7": true,
-              "peer_id 6": true,
-              "peer_id 7": true,
+              "pubkey 6": true,
+              "pubkey 7": true,
               "state_name 1": true
             },
             "renameByName": {
               "node_name": "Node",
               "channel_id": "Channel ID",
-              "peer_id": "Peer ID",
+              "pubkey": "Pubkey",
               "Value #A": "Local Balance (CKB)",
               "Value #B": "Remote Balance (CKB)",
               "Value #C": "Enabled",
@@ -1355,7 +1355,7 @@
             "indexByName": {
               "node_name": 0,
               "channel_id": 1,
-              "peer_id": 2,
+              "pubkey": 2,
               "Value #G": 3,
               "Value #H": 4,
               "Value #A": 5,
