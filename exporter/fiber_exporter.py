@@ -217,7 +217,7 @@ class FiberCollector:
     def _get_peers(self) -> Set[str]:
         result = _rpc_call(self.fiber_rpc_url, "list_peers", [], auth_token=self.fiber_rpc_token)
         peers = result.get("peers", []) if result else []
-        return {p["peer_id"] for p in peers if "peer_id" in p}
+        return {p["pubkey"] for p in peers if "pubkey" in p}
 
     def _get_ckb_balance(self) -> Optional[float]:
         try:
@@ -254,8 +254,8 @@ class FiberCollector:
             if not channel_id:
                 continue
             seen_ids.add(channel_id)
-            peer_id = ch.get("peer_id", "")
-            peer_online = peer_id in online_peers
+            pubkey = ch.get("pubkey", "")
+            peer_online = pubkey in online_peers
             fp = _channel_fingerprint(ch, peer_online)
             existing = self._channel_state.get(channel_id)
             if existing is None or existing.get("fingerprint") != list(fp):
@@ -331,7 +331,7 @@ class FiberCollector:
                 node_name,
                 node_info.get("version") or "",
                 node_info.get("commit_hash") or "",
-                node_info.get("pubkey") or "",
+                node_info.get("pubkey") or node_info.get("node_id") or "",  # node_id fallback for older Fiber nodes
                 node_info.get("chain_hash") or "",
             ],
             1,
@@ -369,7 +369,7 @@ class FiberCollector:
 
         self._update_channel_last_seen(channels, online_peers, now)
 
-        labels = ["node_name", "channel_id", "peer_id"]
+        labels = ["node_name", "channel_id", "pubkey"]
 
         local_bal = GaugeMetricFamily(
             "fiber_channel_local_balance_ckb",
@@ -399,7 +399,7 @@ class FiberCollector:
         ch_state = GaugeMetricFamily(
             "fiber_channel_state",
             "Channel state (1=current state)",
-            labels=["node_name", "channel_id", "peer_id", "state_name"],
+            labels=["node_name", "channel_id", "pubkey", "state_name"],
         )
         ch_status = GaugeMetricFamily(
             "fiber_channel_status",
@@ -415,16 +415,16 @@ class FiberCollector:
 
         for ch in channels:
             channel_id = ch.get("channel_id", "")
-            peer_id = ch.get("peer_id", "")
+            pubkey = ch.get("pubkey", "")
             state = ch.get("state", {})
             state_name = state.get("state_name", "")
-            lbl = [node_name, channel_id, peer_id]
+            lbl = [node_name, channel_id, pubkey]
 
             lb = _hex_to_ckb(ch.get("local_balance", "0x0"))
             rb = _hex_to_ckb(ch.get("remote_balance", "0x0"))
             enabled_bool = ch.get("enabled", False)
             enabled = 1 if enabled_bool else 0
-            peer_online_bool = peer_id in online_peers
+            peer_online_bool = pubkey in online_peers
 
             if state_name == "CHANNEL_READY":
                 if enabled_bool and peer_online_bool:
@@ -441,7 +441,7 @@ class FiberCollector:
             remote_bal.add_metric(lbl, rb)
             ch_enabled.add_metric(lbl, enabled)
             ch_online.add_metric(lbl, channel_online)
-            ch_state.add_metric([node_name, channel_id, peer_id, state_name], 1)
+            ch_state.add_metric([node_name, channel_id, pubkey, state_name], 1)
             ch_status.add_metric(lbl, status)
 
             # last_seen
