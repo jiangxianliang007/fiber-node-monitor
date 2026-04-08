@@ -230,7 +230,7 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 | `fiber_channel_local_balance_ckb` | Gauge | `node_name`, `channel_id`, `pubkey` | Local balance in CKB |
 | `fiber_channel_remote_balance_ckb` | Gauge | `node_name`, `channel_id`, `pubkey` | Remote balance in CKB |
 | `fiber_channel_enabled` | Gauge | `node_name`, `channel_id`, `pubkey` | 1 if enabled |
-| `fiber_channel_online` | Gauge | `node_name`, `channel_id`, `pubkey` | 1 if channel is truly usable (ChannelReady + enabled + peer online), 0 otherwise |
+| `fiber_channel_online` | Gauge | `node_name`, `channel_id`, `pubkey` | 1 if peer is online (ChannelReady + enabled + peer online), 0 otherwise |
 | `fiber_channel_status` | Gauge | `node_name`, `channel_id`, `pubkey` | Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled) |
 | `fiber_channel_last_seen_timestamp` | Gauge | `node_name`, `channel_id`, `pubkey` | Unix timestamp when channel was last fully online (ChannelReady + enabled + peer connected); 0 if never |
 
