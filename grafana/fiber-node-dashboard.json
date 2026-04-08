@@ -999,10 +999,10 @@
                   {
                     "options": {
                       "0": {
-                        "text": "\u274c"
+                        "text": "❌"
                       },
                       "1": {
-                        "text": "\u2705"
+                        "text": "✅"
                       }
                     },
                     "type": "value"
@@ -1011,7 +1011,7 @@
               },
               {
                 "id": "description",
-                "value": "Whether the channel is enabled (\u2705) or disabled (\u274c)"
+                "value": "Whether the channel is enabled (✅) or disabled (❌)"
               }
             ]
           },
@@ -1031,10 +1031,10 @@
                   {
                     "options": {
                       "0": {
-                        "text": "\u274c Not Online"
+                        "text": "❌ Not Online"
                       },
                       "1": {
-                        "text": "\u2705 Online"
+                        "text": "✅ Online"
                       }
                     },
                     "type": "value"
@@ -1163,17 +1163,17 @@
                   {
                     "options": {
                       "0": {
-                        "text": "\ud83d\udd34 Offline",
+                        "text": "🔴 Offline",
                         "color": "red",
                         "index": 0
                       },
                       "1": {
-                        "text": "\ud83d\udfe1 Pending",
+                        "text": "🟡 Pending",
                         "color": "yellow",
                         "index": 1
                       },
                       "2": {
-                        "text": "\ud83d\udfe2 Online",
+                        "text": "🟢 Online",
                         "color": "green",
                         "index": 2
                       }
@@ -1188,7 +1188,7 @@
               },
               {
                 "id": "description",
-                "value": "Overall channel health: \ud83d\udfe2 Online (CHANNEL_READY + enabled + peer online), \ud83d\udfe1 Pending (still establishing), \ud83d\udd34 Offline (CHANNEL_READY but peer offline or disabled)"
+                "value": "Overall channel health: 🟢 Online (CHANNEL_READY + enabled + peer online), 🟡 Pending (still establishing), 🔴 Offline (CHANNEL_READY but peer offline or disabled)"
               }
             ]
           }
@@ -1284,11 +1284,22 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "fiber_channel_status{network=~\"$network\", node_name=~\"$node\"}",
+          "expr": "fiber_channel_state{network=~\"$network\", node_name=~\"$node\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
           "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "fiber_channel_status{network=~\"$network\", node_name=~\"$node\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "H"
         }
       ],
       "title": "Channel Details",
@@ -1297,7 +1308,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(channel_id|pubkey|node_name|Value .*)$"
+              "pattern": "^(channel_id|pubkey|node_name|state_name|Value .*)$"
             }
           }
         },
@@ -1325,7 +1336,10 @@
               "node_name 6": true,
               "node_name 7": true,
               "pubkey 6": true,
-              "pubkey 7": true
+              "pubkey 7": true,
+              "state_name 1": true,
+              "node_name 8": true,
+              "pubkey 8": true
             },
             "renameByName": {
               "node_name": "Node",
@@ -1337,25 +1351,27 @@
               "Value #D": "Channel Online",
               "Value #E": "Last Seen",
               "Value #F": "Stale Duration",
-              "Value #G": "Status"
+              "Value #G": "Channel State",
+              "Value #H": "Status"
             },
             "indexByName": {
               "node_name": 0,
               "channel_id": 1,
               "pubkey": 2,
               "Value #G": 3,
-              "Value #A": 4,
-              "Value #B": 5,
-              "Value #C": 6,
-              "Value #D": 7,
-              "Value #E": 8,
-              "Value #F": 9
+              "Value #H": 4,
+              "Value #A": 5,
+              "Value #B": 6,
+              "Value #C": 7,
+              "Value #D": 8,
+              "Value #E": 9,
+              "Value #F": 10
             }
           }
         }
       ],
       "type": "table",
-      "description": "Per-channel details. Channel State shows the current state (CHANNEL_READY, NEGOTIATING_FUNDING, etc.). Status summarizes overall health: \ud83d\udfe2 Online = truly usable (READY + enabled + peer online), \ud83d\udfe1 Pending = still being established, \ud83d\udd34 Offline = READY but peer offline or disabled. Channel Online matches Status=Online."
+      "description": "Per-channel details. Channel State shows the current state (CHANNEL_READY, NEGOTIATING_FUNDING, etc.). Status summarizes overall health: 🟢 Online = truly usable (READY + enabled + peer online), 🟡 Pending = still being established, 🔴 Offline = READY but peer offline or disabled. Channel Online matches Status=Online."
     }
   ],
   "refresh": "30s",
