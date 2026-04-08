@@ -26,16 +26,13 @@ logger = logging.getLogger("fiber_exporter")
 
 SHANNONS_PER_CKB = 1e8
 
-
 def _hex_to_int(value: str) -> int:
     """Convert a hex string like '0x3' to an integer."""
     return int(value, 16)
 
-
 def _hex_to_ckb(value: str) -> float:
     """Convert a Shannon hex string to CKB float."""
     return _hex_to_int(value) / SHANNONS_PER_CKB
-
 
 def _rpc_call(
     url: str,
@@ -56,7 +53,6 @@ def _rpc_call(
         raise RuntimeError(f"RPC error for {method}: {data['error']}")
     return data.get("result")
 
-
 def _channel_fingerprint(ch: Dict, peer_online: bool) -> tuple:
     """Compute a fingerprint tuple from channel state fields."""
     state = ch.get("state", {})
@@ -71,7 +67,6 @@ def _channel_fingerprint(ch: Dict, peer_online: bool) -> tuple:
         ch.get("enabled", False),
         peer_online,
     )
-
 
 class FiberCollector:
     """Custom Prometheus collector for Fiber node metrics."""
@@ -388,12 +383,12 @@ class FiberCollector:
         )
         ch_online = GaugeMetricFamily(
             "fiber_channel_online",
-            "1 if channel is truly usable (CHANNEL_READY + enabled + peer online), 0 otherwise",
+            "1 if channel is truly usable (ChannelReady + enabled + peer online), 0 otherwise",
             labels=labels,
         )
         ch_last_seen = GaugeMetricFamily(
             "fiber_channel_last_seen_timestamp",
-            "Unix timestamp when channel was last fully online (CHANNEL_READY + enabled + peer connected)",
+            "Unix timestamp when channel was last fully online (ChannelReady + enabled + peer connected)",
             labels=labels,
         )
         ch_state = GaugeMetricFamily(
@@ -427,6 +422,7 @@ class FiberCollector:
             peer_online_bool = pubkey in online_peers
 
             if state_name == "ChannelReady":
+                if enabled_bool and peer_online_bool:
                     status = 2
                     channel_online = 1
                 else:
@@ -451,6 +447,7 @@ class FiberCollector:
                 ch_last_seen.add_metric(lbl, 0)
 
             if state_name == "ChannelReady":
+                total_local += lb
                 total_remote += rb
                 active_count += 1
                 if enabled_bool and peer_online_bool:
@@ -479,17 +476,17 @@ class FiberCollector:
         )
         active_total = GaugeMetricFamily(
             "fiber_channels_active_total",
-            "Count of CHANNEL_READY channels",
+            "Count of ChannelReady channels",
             labels=["node_name"],
         )
         healthy_total = GaugeMetricFamily(
             "fiber_channels_healthy_total",
-            "Count of truly usable channels (CHANNEL_READY + enabled + peer online)",
+            "Count of truly usable channels (ChannelReady + enabled + peer online)",
             labels=["node_name"],
         )
         pending_total = GaugeMetricFamily(
             "fiber_channels_pending_total",
-            "Count of channels not yet CHANNEL_READY",
+            "Count of channels not yet ChannelReady",
             labels=["node_name"],
         )
         local_total.add_metric([node_name], total_local)
@@ -543,7 +540,6 @@ class FiberCollector:
         yield graph_channels
         yield graph_capacity
 
-
 def main():
     fiber_rpc_url = os.environ.get("FIBER_RPC_URL", "http://127.0.0.1:8227")
     ckb_rpc_url = os.environ.get("CKB_RPC_URL", "https://mainnet.ckbapp.dev")
@@ -584,7 +580,6 @@ def main():
 
     while True:
         time.sleep(1)
-
 
 if __name__ == "__main__":
     main()
