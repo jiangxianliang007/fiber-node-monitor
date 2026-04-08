@@ -263,7 +263,7 @@ class FiberCollector:
                 state_name = state.get("state_name", "")
                 enabled_bool = ch.get("enabled", False)
                 # Only update last_seen when channel is truly online
-                if state_name == "CHANNEL_READY" and enabled_bool and peer_online:
+                if state_name == "ChannelReady" and enabled_bool and peer_online:
                     new_last_seen = now
                 else:
                     # Fingerprint changed but channel is not online; preserve existing last_seen
@@ -426,8 +426,7 @@ class FiberCollector:
             enabled = 1 if enabled_bool else 0
             peer_online_bool = pubkey in online_peers
 
-            if state_name == "CHANNEL_READY":
-                if enabled_bool and peer_online_bool:
+            if state_name == "ChannelReady":
                     status = 2
                     channel_online = 1
                 else:
@@ -451,8 +450,7 @@ class FiberCollector:
             else:
                 ch_last_seen.add_metric(lbl, 0)
 
-            if state_name == "CHANNEL_READY":
-                total_local += lb
+            if state_name == "ChannelReady":
                 total_remote += rb
                 active_count += 1
                 if enabled_bool and peer_online_bool:

@@ -1284,22 +1284,11 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "fiber_channel_state{network=~\"$network\", node_name=~\"$node\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "G"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "expr": "fiber_channel_status{network=~\"$network\", node_name=~\"$node\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
-          "refId": "H"
+          "refId": "G"
         }
       ],
       "title": "Channel Details",
@@ -1308,7 +1297,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(channel_id|pubkey|node_name|state_name|Value .*)$"
+              "pattern": "^(channel_id|pubkey|node_name|Value .*)$"
             }
           }
         },
@@ -1336,8 +1325,7 @@
               "node_name 6": true,
               "node_name 7": true,
               "pubkey 6": true,
-              "pubkey 7": true,
-              "state_name 1": true
+              "pubkey 7": true
             },
             "renameByName": {
               "node_name": "Node",
@@ -1349,21 +1337,19 @@
               "Value #D": "Channel Online",
               "Value #E": "Last Seen",
               "Value #F": "Stale Duration",
-              "Value #G": "Channel State",
-              "Value #H": "Status"
+              "Value #G": "Status"
             },
             "indexByName": {
               "node_name": 0,
               "channel_id": 1,
               "pubkey": 2,
               "Value #G": 3,
-              "Value #H": 4,
-              "Value #A": 5,
-              "Value #B": 6,
-              "Value #C": 7,
-              "Value #D": 8,
-              "Value #E": 9,
-              "Value #F": 10
+              "Value #A": 4,
+              "Value #B": 5,
+              "Value #C": 6,
+              "Value #D": 7,
+              "Value #E": 8,
+              "Value #F": 9
             }
           }
         }
