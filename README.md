@@ -8,7 +8,7 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 - **Grafana dashboard** — importable JSON with cascading template variables (`datasource → network → node`)
 - **Prometheus alert rules** — covers node down, low balance, no peers, stale/disabled/offline channels
 - **Multi-node / multi-network** support — one exporter per node; `network` label injected by Prometheus scrape config
-- **Persistent channel state** — tracks `last_seen` timestamp per channel across restarts; only updates when the channel is fully online (CHANNEL_READY + enabled + peer connected)
+- **Persistent channel state** — tracks `last_seen` timestamp per channel across restarts; only updates when the channel is fully online (ChannelReady + enabled + peer connected)
 - **CKB wallet balance** — decodes bech32/bech32m addresses; queries CKB Indexer
 
 ## Dashboard Preview
@@ -27,44 +27,14 @@ A complete Prometheus + Grafana monitoring solution for [Fiber](https://github.c
 | Node Overview | Channel Count | Timeseries | Channel count trend per node with last value in legend |
 | Channel Balances | Total Local Balance | Timeseries | Local balance trend per node (CKB) |
 | Channel Balances | Total Remote Balance | Timeseries | Remote balance trend per node (CKB) |
-| Channel Balances | Active Channels | Timeseries | CHANNEL_READY count trend per node |
+| Channel Balances | Active Channels | Timeseries | ChannelReady count trend per node |
 | Channel Balances | Healthy Channels | Timeseries | Truly usable channels trend (READY + enabled + peer online) |
-| Channel Balances | Pending Channels | Stat | Channels not yet CHANNEL_READY |
-| Channel Balances | Pending Channels Over Time | Timeseries | Trend of channels not yet CHANNEL_READY over time |
+| Channel Balances | Pending Channels | Stat | Channels not yet ChannelReady |
+| Channel Balances | Pending Channels Over Time | Timeseries | Trend of channels not yet ChannelReady over time |
 | Network Graph | Graph Nodes | Timeseries | Total nodes in the network graph |
 | Network Graph | Graph Channels | Timeseries | Total channels in the network graph |
 | Network Graph | Total Capacity | Timeseries | Total network capacity trend (CKB) |
 | Channel Details | Channel Details | Table | Per-channel breakdown with state, status, balances, and last-seen |
-
-## Architecture
-
-```
-                        ┌─────────────────────────────────────┐
-                        │         Prometheus Server            │
-                        │                                      │
-                        │  scrape_configs:                     │
-                        │   - job: fiber-mainnet               │
-                        │     labels: {network: mainnet}       │◄──┐
-                        │     targets: [node1:8222, node2:8222]│   │
-                        │                                      │   │ scrape
-                        │   - job: fiber-testnet               │   │ /metrics
-                        │     labels: {network: testnet}       │   │
-                        │     targets: [node3:8222]            │   │
-                        └──────────────┬──────────────────────┘   │
-                                       │                           │
-                               PromQL  │                 ┌─────────┴────────┐
-                                       ▼                 │  Fiber Exporter  │
-                        ┌──────────────────────┐         │  (per node)      │
-                        │   Grafana Dashboard  │         │                  │
-                        │                      │         │ fiber_exporter.py│
-                        │  Variables:          │         │  :8222/metrics   │
-                        │   $datasource        │         └────────┬─────────┘
-                        │   $network           │                  │ JSON-RPC
-                        │   $node              │         ┌────────▼─────────┐
-                        └──────────────────────┘         │   Fiber Node     │
-                                                         │   :8227          │
-                                                         └──────────────────┘
-```
 
 ## Prerequisites
 
@@ -257,13 +227,12 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `fiber_channel_local_balance_ckb` | Gauge | `node_name`, `channel_id`, `peer_id` | Local balance in CKB |
-| `fiber_channel_remote_balance_ckb` | Gauge | `node_name`, `channel_id`, `peer_id` | Remote balance in CKB |
-| `fiber_channel_enabled` | Gauge | `node_name`, `channel_id`, `peer_id` | 1 if enabled |
-| `fiber_channel_online` | Gauge | `node_name`, `channel_id`, `peer_id` | 1 if channel is truly usable (CHANNEL_READY + enabled + peer online), 0 otherwise |
-| `fiber_channel_state` | Gauge | `node_name`, `channel_id`, `peer_id`, `state_name` | Channel state (1=current state) |
-| `fiber_channel_status` | Gauge | `node_name`, `channel_id`, `peer_id` | Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled) |
-| `fiber_channel_last_seen_timestamp` | Gauge | `node_name`, `channel_id`, `peer_id` | Unix timestamp when channel was last fully online (CHANNEL_READY + enabled + peer connected); 0 if never |
+| `fiber_channel_local_balance_ckb` | Gauge | `node_name`, `channel_id`, `pubkey` | Local balance in CKB |
+| `fiber_channel_remote_balance_ckb` | Gauge | `node_name`, `channel_id`, `pubkey` | Remote balance in CKB |
+| `fiber_channel_enabled` | Gauge | `node_name`, `channel_id`, `pubkey` | 1 if enabled |
+| `fiber_channel_online` | Gauge | `node_name`, `channel_id`, `pubkey` | 1 if channel is truly usable (ChannelReady + enabled + peer online), 0 otherwise |
+| `fiber_channel_status` | Gauge | `node_name`, `channel_id`, `pubkey` | Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled) |
+| `fiber_channel_last_seen_timestamp` | Gauge | `node_name`, `channel_id`, `pubkey` | Unix timestamp when channel was last fully online (ChannelReady + enabled + peer connected); 0 if never |
 
 ### Aggregated
 
@@ -271,9 +240,9 @@ All panel queries use `{network=~"$network", node_name=~"$node"}` for consistent
 |--------|------|--------|-------------|
 | `fiber_channels_local_balance_total_ckb` | Gauge | `node_name` | Sum of local balances |
 | `fiber_channels_remote_balance_total_ckb` | Gauge | `node_name` | Sum of remote balances |
-| `fiber_channels_active_total` | Gauge | `node_name` | Count of `CHANNEL_READY` channels |
-| `fiber_channels_healthy_total` | Gauge | `node_name` | Count of truly usable channels (CHANNEL_READY + enabled + peer online) |
-| `fiber_channels_pending_total` | Gauge | `node_name` | Count of channels not yet CHANNEL_READY |
+| `fiber_channels_active_total` | Gauge | `node_name` | Count of `ChannelReady` channels |
+| `fiber_channels_healthy_total` | Gauge | `node_name` | Count of truly usable channels (ChannelReady + enabled + peer online) |
+| `fiber_channels_pending_total` | Gauge | `node_name` | Count of channels not yet ChannelReady |
 
 ### Network Graph (cached)
 

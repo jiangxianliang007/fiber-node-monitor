@@ -263,7 +263,7 @@ class FiberCollector:
                 state_name = state.get("state_name", "")
                 enabled_bool = ch.get("enabled", False)
                 # Only update last_seen when channel is truly online
-                if state_name == "CHANNEL_READY" and enabled_bool and peer_online:
+                if state_name == "ChannelReady" and enabled_bool and peer_online:
                     new_last_seen = now
                 else:
                     # Fingerprint changed but channel is not online; preserve existing last_seen
@@ -396,11 +396,6 @@ class FiberCollector:
             "Unix timestamp when channel was last fully online (CHANNEL_READY + enabled + peer connected)",
             labels=labels,
         )
-        ch_state = GaugeMetricFamily(
-            "fiber_channel_state",
-            "Channel state (1=current state)",
-            labels=["node_name", "channel_id", "pubkey", "state_name"],
-        )
         ch_status = GaugeMetricFamily(
             "fiber_channel_status",
             "Overall channel health: 2=Online (READY+enabled+peer online), 1=Pending (not READY), 0=Offline (READY but peer offline or disabled)",
@@ -426,7 +421,7 @@ class FiberCollector:
             enabled = 1 if enabled_bool else 0
             peer_online_bool = pubkey in online_peers
 
-            if state_name == "CHANNEL_READY":
+            if state_name == "ChannelReady":
                 if enabled_bool and peer_online_bool:
                     status = 2
                     channel_online = 1
@@ -441,7 +436,6 @@ class FiberCollector:
             remote_bal.add_metric(lbl, rb)
             ch_enabled.add_metric(lbl, enabled)
             ch_online.add_metric(lbl, channel_online)
-            ch_state.add_metric([node_name, channel_id, pubkey, state_name], 1)
             ch_status.add_metric(lbl, status)
 
             # last_seen
@@ -451,7 +445,7 @@ class FiberCollector:
             else:
                 ch_last_seen.add_metric(lbl, 0)
 
-            if state_name == "CHANNEL_READY":
+            if state_name == "ChannelReady":
                 total_local += lb
                 total_remote += rb
                 active_count += 1
@@ -465,7 +459,6 @@ class FiberCollector:
         yield ch_enabled
         yield ch_online
         yield ch_last_seen
-        yield ch_state
         yield ch_status
 
         # ---- aggregated ----
